@@ -827,6 +827,15 @@ static bool repeat_info_match(struct sway_keyboard *a, struct wlr_keyboard *b) {
 		a->repeat_delay == b->repeat_info.delay;
 }
 
+static bool keyboard_group_match(struct sway_keyboard *keyboard,
+		struct sway_keyboard_group *group) {
+	return wlr_keyboard_keymaps_match(keyboard->keymap,
+			group->wlr_group->keyboard.keymap) &&
+		repeat_info_match(keyboard, &group->wlr_group->keyboard) &&
+		keyboard->xkb_numlock == group->xkb_numlock &&
+		keyboard->xkb_capslock == group->xkb_capslock;
+}
+
 static void destroy_empty_wlr_keyboard_group(void *data) {
 	wlr_keyboard_group_destroy(data);
 }
@@ -879,9 +888,7 @@ static void sway_keyboard_group_remove_invalid(struct sway_keyboard *keyboard) {
 		break;
 	case KEYBOARD_GROUP_DEFAULT: /* fallthrough */
 	case KEYBOARD_GROUP_SMART:;
-		struct wlr_keyboard_group *group = keyboard->wlr->group;
-		if (!wlr_keyboard_keymaps_match(keyboard->keymap, group->keyboard.keymap) ||
-				!repeat_info_match(keyboard, &group->keyboard)) {
+		if (!keyboard_group_match(keyboard, keyboard->wlr->group->data)) {
 			sway_keyboard_group_remove(keyboard);
 		}
 		break;
@@ -916,9 +923,7 @@ static void sway_keyboard_group_add(struct sway_keyboard *keyboard) {
 		case KEYBOARD_GROUP_DEFAULT: /* fallthrough */
 		case KEYBOARD_GROUP_SMART:;
 			struct wlr_keyboard_group *wlr_group = group->wlr_group;
-			if (wlr_keyboard_keymaps_match(keyboard->keymap,
-						wlr_group->keyboard.keymap) &&
-					repeat_info_match(keyboard, &wlr_group->keyboard)) {
+			if (keyboard_group_match(keyboard, group)) {
 				sway_log(SWAY_DEBUG, "Adding keyboard %s to group %p",
 						device->identifier, wlr_group);
 				wlr_keyboard_group_add_keyboard(wlr_group, keyboard->wlr);
@@ -944,6 +949,8 @@ static void sway_keyboard_group_add(struct sway_keyboard *keyboard) {
 	wlr_keyboard_set_keymap(&sway_group->wlr_group->keyboard, keyboard->keymap);
 	wlr_keyboard_set_repeat_info(&sway_group->wlr_group->keyboard,
 			keyboard->repeat_rate, keyboard->repeat_delay);
+	sway_group->xkb_numlock = keyboard->xkb_numlock;
+	sway_group->xkb_capslock = keyboard->xkb_capslock;
 	sway_log(SWAY_DEBUG, "Created keyboard group %p", sway_group->wlr_group);
 
 	sway_group->seat_device = calloc(1, sizeof(struct sway_seat_device));
@@ -1103,6 +1110,9 @@ void sway_keyboard_configure(struct sway_keyboard *keyboard) {
 		wlr_keyboard_set_repeat_info(keyboard->wlr,
 				keyboard->repeat_rate, keyboard->repeat_delay);
 	}
+
+	keyboard->xkb_numlock = input_config && input_config->xkb_numlock > 0;
+	keyboard->xkb_capslock = input_config && input_config->xkb_capslock > 0;
 
 	if (!keyboard->seat_device->input_device->is_virtual) {
 		sway_keyboard_set_layout(keyboard, input_config);

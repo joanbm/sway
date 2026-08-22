@@ -58,6 +58,10 @@ struct sway_keyboard {
 	int32_t repeat_rate;
 	int32_t repeat_delay;
 
+	/** Grouped keyboards share one xkb state, so these must match to group */
+	bool xkb_numlock;
+	bool xkb_capslock;
+
 	struct wl_listener keyboard_key;
 	struct wl_listener keyboard_modifiers;
 
@@ -74,6 +78,8 @@ struct sway_keyboard {
 struct sway_keyboard_group {
 	struct wlr_keyboard_group *wlr_group;
 	struct sway_seat_device *seat_device;
+	bool xkb_numlock;
+	bool xkb_capslock;
 	struct wl_listener keyboard_key;
 	struct wl_listener keyboard_modifiers;
 	struct wl_listener enter;

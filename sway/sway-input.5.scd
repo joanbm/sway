@@ -288,11 +288,11 @@ correct seat.
 	Set how the keyboards in the seat are grouped together. Currently, there
 	are two options. _none_ will disable all keyboard grouping. This will make
 	it so each keyboard device has its own isolated state. _smart_ will
-	group the keyboards in the seat by their keymap and repeat info. This is
-	useful for when the keyboard appears as multiple separate input devices.
-	In this mode, the effective layout is synced between the keyboards in the
-	group. The default is _smart_. To restore the behavior of older versions
-	of sway, use _none_.
+	group the keyboards in the seat by their keymap, repeat info, and
+	xkb_numlock/xkb_capslock settings. This is useful for when the keyboard
+	appears as multiple separate input devices. In this mode, the effective
+	layout is synced between the keyboards in the group. The default is
+	_smart_. To restore the behavior of older versions of sway, use _none_.
 
 *seat* <name> pointer_constraint enable|disable|escape
 	Enables or disables the ability for clients to capture the cursor (enabled
